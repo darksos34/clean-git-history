@@ -4,10 +4,14 @@ This guide shows several safe ways to remove files from your Git history.
 
 ### Example Repo:
 In the entire history all .env files were removed.
-![img.png](img.png)
 
 
-![img_1.png](img_1.png)
+ ![img.png](img.png)
+
+
+
+
+ ![img_1.png](img_1.png)
 
 ## 1. Create a backup branch
 Always create a backup before rewriting history.
