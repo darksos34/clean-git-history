@@ -1,74 +1,69 @@
-# Clean Git History
+## Removing files from Git history
+Some files should **never** be uploaded to Repo (API keys, `.env`, secrets, large binaries, etc.).  
+This guide shows several safe ways to remove files from your Git history.
 
-## 🛡️ Step 1: Backup
+### Example Repo:
+In the entire history all .env files were removed.
+![img.png](img.png)
 
-```bash
-# Create backup branch
-git branch backup-now
 
-# Clone to backup directory
-git clone . ../backup
-```
+![img_1.png](img_1.png)
 
-## ↩️ Step 2: Undo Commits
-
-```bash
-# Undo last commit (keep changes staged)
-git reset --soft HEAD~1
-
-# Undo last commit (unstage changes)
-git reset HEAD~1
-
-# Undo last commit (delete everything)
-git reset --hard HEAD~1
-```
-
-## 🔄 Step 3: Restore
+## 1. Create a backup branch
+Always create a backup before rewriting history.
 
 ```bash
-# View recent actions
-git reflog
-
-# Restore from backup branch
-git reset --hard backup-now
-
-# Or undo last action
-git reset --hard HEAD@{1}
+git checkout -b <backup-branch-name>
+git push -u origin <backup-branch-name>
 ```
 
----
-
-## Quick Reference
+## 2. Start an interactive rebase from the root
 
 ```bash
-# Backup
-git branch backup-now && git clone . ../backup
-
-# Undo last commit
-git reset --soft HEAD~1    # Keep changes
-git reset HEAD~1           # Unstage
-git reset --hard HEAD~1    # Delete
-
-# Restore
-git reset --hard backup-now
-git reset --hard HEAD@{1}
+git rebase -i --root
 ```
 
----
+Git will open a list of all commits:
 
-## Database Config
-
-```yaml
-# application.yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/clean_git_history
-    username: postgres
-    password: ${DB_PASSWORD:postgres}
+```
+pick a1b2c3 first commit
+pick d4e5f6 env files added
+pick 123abc config changes
+...
 ```
 
-Set password:
+### Available actions
+- `pick` → keep the commit
+- `edit` → modify the commit content
+- `reword` → change only the commit message
+- `squash` → combine commits
+- delete a commit → remove the entire line
+
+
+## 3. Save and close the editor
+If you're using Vim:
+
+- Press `Esc`
+- Type `:wq`
+- Press `Enter`
+
+
+## 🔥 Example: editing a commit during rebase
+If you changed `pick` → `edit`, run:
+
 ```bash
-export DB_PASSWORD="your_password"
+git commit --amend
+git rebase --continue
 ```
 
+Repeat this for every commit Git stops at.
+
+
+## ⚠️ Important: force‑push after rewriting history
+After the rebase is complete:
+
+```bash
+git push --force-with-lease
+```
+
+`--force-with-lease` is safer than `--force` because it prevents overwriting work you don’t have locally.
